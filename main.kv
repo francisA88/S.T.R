@@ -1,0 +1,145 @@
+#:kivy 2.2.1
+#:set YELLOW 1, 1, 0, 1
+#:set YELLOW_A 1, 1, 0, .6
+#:set RED 1, 0, 0, 1
+#:set RED_A 1, 0, 0, .6
+#:set WHITE 1, 1, 1, 1
+#:set LBLUE 0, 1, 1, 1
+#:set TEAL 0, 80/255, 90/255, 1
+
+#Just like "from itertools import cycle as cycle"
+#:import cycle itertools.cycle
+#:import Factory kivy.factory.Factory
+
+<GameLayout>:
+    canvas.before:
+        Color:
+        Line:
+            points: 0, root.height-120, root.width, root.height-120
+            width: 2
+    CustomLabel:
+        id: "title"
+        text: "[b]Shoot The Rings[/b]"
+        font_size: 30
+        color: WHITE
+        size: self.texture_size
+        size_hint: None, None
+        center: root.center[0], root.height - self.height
+
+    #Exit button
+    IconButton:
+        text: "[b]\uF156[/b]"
+        color: WHITE
+        pos: root.width-40, root.height-25
+        background_color: RED
+        id: close_btn
+        on_press:
+            self.background_color = RED_A
+        on_release:
+            self.background_color = RED
+            quit()
+    
+    CustomButton:
+        text: "[b]\u003F[/b]"
+        color: 0, 60/255, 60/255, 1
+        top: close_btn.y - 5
+        x: close_btn.x
+        on_release:
+            Factory.HelpPopup().open()
+            app.IS_PAUSED = True
+
+    #Pause Button
+    CustomButton:
+        text: ["[b]PAUSE[/b]", "[b]PLAY[/b]"][app.IS_PAUSED]
+        color: TEAL
+        pos: 5, root.height-45
+        id: pausebtn
+        size: 110, 40
+        on_press: app.IS_PAUSED ^= 1
+
+    BoxLayout:
+        orientation: "vertical"
+        size: max(map(lambda x:x.width, self.children)), len(self.children)*self.children[0].height
+        size_hint: None, None
+        pos: 10, root.ids.pausebtn.y - 70
+        spacing: 10
+        CustomLabel:
+            text: "[b] Health: %s[/b]"%app.HEALTH_PERCENTAGE +'%'
+            color: WHITE
+        Slider:
+            max: 100
+            value: app.HEALTH_PERCENTAGE
+            value_track_color: 1, int(app.HEALTH_PERCENTAGE > 25), 0#Will change from yellow to red when the health goes below 25%
+            value_track_width: 4
+            value_track: True
+            cursor_image: ""
+            cursor_size: 0,0
+            width: 200
+            size_hint_x: None
+            
+        CustomLabel:
+            text: "[b] Survival Time: %ss[/b]"%round(app.TIME_COUNT, 2) 
+            color: WHITE
+            # pos: 0, root.ids.pausebtn.y -self.height- 10
+    CustomButton:
+        text: "[b]START[/b]"
+        width: 150
+        height: 50
+        opacity: int(not app.STARTED)
+        disabled: int(app.STARTED)
+        center_x: root.center_x
+        y: 5
+        color: TEAL
+        on_press:
+            self.background_color = YELLOW_A
+            app.STARTED = True
+            app.IS_PAUSED  = False
+            app.HEALTH_PERCENTAGE = 100
+            app.start_game()
+        on_release:
+            self.background_color = YELLOW
+
+<IconButton@CustomButton>:
+    font_name: 'mdicons.ttf'
+
+<CustomLabel@Label>:
+    size_hint: None, None
+    size: self.texture_size
+    color: YELLOW
+    markup: True
+
+<CustomButton@Button>:
+    background_down: ""
+    background_normal: ""
+    background_color: YELLOW
+    font_size: 20
+    markup: True
+    size: 40, 25
+    size_hint: None, None
+
+<HelpPopup@Popup>:
+    size_hint: None, None
+    title: "Shoot The Rings - info"
+    title_size: 21
+    title_align: 'center'
+    width: 350
+    height: 400
+    auto_dismiss: False
+    background_color: TEAL
+    background: ""
+    BoxLayout:
+        orientation: "vertical"
+        spacing: 10
+        CustomLabel:
+            color: WHITE
+            text: open('info.txt').read()
+            size_hint_x: 1
+        CustomButton:
+            id: ok_btn
+            text: "OK"
+            size_hint_x: 1
+            height: 40
+            color: TEAL
+            on_press:
+                root.dismiss()
+        
